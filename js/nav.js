@@ -9,7 +9,7 @@
 function navAllStories(evt) {
   console.debug("navAllStories", evt);
   hidePageComponents();
-  putStoriesOnPage();
+  putStoriesOnPage('all');
 }
 
 $body.on("click", "#nav-all", navAllStories);
@@ -24,6 +24,35 @@ function navLoginClick(evt) {
 }
 
 $navLogin.on("click", navLoginClick);
+
+/** Show story submission form on 'submit' */
+
+function navSubmit(evt) {
+  console.debug("navSubmit");
+  $storyForm.show();
+}
+
+$navSubmit.on("click", navSubmit);
+
+/** Show list of favorites on 'favorites' */
+
+function navFavorites(evt) {
+  console.debug("navFavorites");
+  hidePageComponents();
+  putStoriesOnPage('favorites');
+}
+
+$navFavorites.on("click", navFavorites);
+
+/** Show story user's own stories on 'my stories' */
+
+function navOwn(evt) {
+  console.debug("navOwn");
+  hidePageComponents();
+  putStoriesOnPage('own');
+}
+
+$navOwn.on("click", navOwn);
 
 /** When a user first logins in, update the navbar to reflect that. */
 

@@ -24,8 +24,8 @@ class Story {
   /** Parses hostname out of URL and returns it. */
 
   getHostName() {
-    // UNIMPLEMENTED: complete this function!
-    return "hostname.com";
+    const url = new URL(this.url);
+    return url.hostname;
   }
 }
 
@@ -73,8 +73,25 @@ class StoryList {
    * Returns the new Story instance
    */
 
-  async addStory( /* user, newStory */) {
-    // UNIMPLEMENTED: complete this function!
+  async addStory(user, newStory) {
+    const response = await axios({
+      url: `${BASE_URL}/stories`,
+      method: "POST",
+      data: {
+        token: user.loginToken,
+        story: newStory
+      }
+    })
+
+    const finishedStory = new Story(
+      response.data.story
+    );
+
+    // put at top of all story list; bottom of 'my stories' list
+    storyList.stories.unshift(finishedStory);
+    currentUser.ownStories.push(finishedStory);
+
+    return finishedStory;
   }
 }
 
@@ -190,5 +207,52 @@ class User {
       console.error("loginViaStoredCredentials failed", err);
       return null;
     }
+  }
+
+  /** Toggle whether story is in user's favorites list */
+
+  async toggleUserFavorite(storyId, action) {
+    const method = action;
+    const response = await axios({
+      url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      method: action,
+      data: {
+        token: this.loginToken
+      }
+    })
+
+    // if adding to favorites, add locally as well
+    if (action === "POST") {
+      const story = await axios({
+        url: `${BASE_URL}/stories/${storyId}`,
+        method: "GET",
+      })
+      currentUser.favorites.push(new Story(story.data.story));
+    }
+
+    // if un-favoriting, delete locally
+    if (action === "DELETE") {
+      currentUser.favorites = currentUser.favorites.filter((story) => story.storyId != storyId);
+    }
+  }
+
+  async deleteStory(storyId) {
+    const response = await axios({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "DELETE",
+      data: {
+        token: this.loginToken
+      }
+    })
+    console.log(response)
+
+    // delete from each local list
+    currentUser.ownStories = currentUser.ownStories.filter((story) => story.storyId != storyId);
+    currentUser.favorites = currentUser.favorites.filter((story) => story.storyId != storyId);
+    storyList.stories = storyList.stories.filter((story) => story.storyId != storyId);
+    // for (let localList of [storyList.stories, currentUser.favorites, currentUser.ownStories]) {
+    //   localList = localList.filter((story) => story.storyID != storyId);
+    //   console.log(localList);
+    // }
   }
 }
