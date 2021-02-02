@@ -53,19 +53,50 @@
   <!-- New Story form -->
   <form action="#" id="story-form" class="story-form hidden" method="post">
     <h4>submit story</h4>
-    <div class="submit-title">
+    <div class="form-title">
       <label for="submit-title">title</label>
       <input id="submit-title">
     </div>
-    <div class="submit-author">
+    <div class="form-author">
       <label for="submit-author">author</label>
       <input id="submit-author">
     </div>
-    <div class="submit-url">
+    <div class="form-url">
       <label for="submit-url">url</label>
       <input id="submit-url">
     </div>
-    <button type="submit">submit</button>
+    <div class='form-button-row'>
+      <button type="submit">submit</button> 
+      <button type='button' id='cancel-story'>cancel</button>
+    </div>
+    <hr>
+  </form>
+
+</section>
+
+<!-- area for updating a story -->
+<section class="submit-container container">
+
+  <!-- Update Story form -->
+  <form action="#" id="update-form" class="story-form hidden" method="post">
+    <h4>update story</h4>
+    <div class="form-title">
+      <label for="update-title">title</label>
+      <input id="update-title">
+    </div>
+    <div class="form-author">
+      <label for="update-author">author</label>
+      <input id="update-author">
+    </div>
+    <div class="form-url">
+      <label for="update-url">url</label>
+      <input id="update-url">
+    </div>
+    <div class='form-button-row'>
+      <button type="submit">update</button> 
+      <button type='button' id='cancel-update'>cancel</button>
+    </div>
+    <hr>
   </form>
 
 </section>
@@ -121,6 +152,37 @@
     <button type="submit">create account</button>
   </form>
 </section>
+
+<!-- User info and user update and delete forms -->
+<section class="user-info-container container">
+  <div id="user-info" class="user-info">
+  </div>
+
+  <!-- User update form -->
+  <form action="#" id="user-form" class="user-form hidden" method="post">
+    <h4>Update Your Account</h4>
+    <div class="user-input">
+      <label for="user-name">new name</label>
+      <input id="user-name" autocomplete="current-username">
+    </div>
+    <div class="user-input">
+      <label for="user-password">new password</label>
+      <input id="user-password" type="password" autocomplete="current-password">
+    </div>
+    <div class='form-button-row'>
+      <button type="submit">update</button> 
+      <button type='button' id='cancel-update-profile'>cancel</button>
+    </div>
+    <hr>
+  </form>
+
+  <!-- User delete form -->
+  <form action="#" id="user-delete-form" class="user-form hidden" method="post">
+    <h4>Delete Your Account</h4>
+    <div class='form-button-row'>
+      <button type="submit">delete</button> 
+    </div>
+  </form>
 
 <!-- Library JS & our JS -->
 <script src="https://unpkg.com/jquery"></script>

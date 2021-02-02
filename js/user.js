@@ -23,8 +23,10 @@ async function login(evt) {
 
   $loginForm.trigger("reset");
 
-  saveUserCredentialsInLocalStorage();
-  updateUIOnUserLogin();
+  if (currentUser) {
+    saveUserCredentialsInLocalStorage();
+    updateUIOnUserLogin();
+  }
 }
 
 $loginForm.on("submit", login);
@@ -43,8 +45,10 @@ async function signup(evt) {
   // which we'll make the globally-available, logged-in user.
   currentUser = await User.signup(username, password, name);
 
-  saveUserCredentialsInLocalStorage();
-  updateUIOnUserLogin();
+  if (currentUser) {
+    saveUserCredentialsInLocalStorage();
+    updateUIOnUserLogin();
+  }
 
   $signupForm.trigger("reset");
 }
@@ -96,6 +100,59 @@ function saveUserCredentialsInLocalStorage() {
   }
 }
 
+/*********************************************************************************
+ * Update user info and delete user account
+ * 
+/** Update user name or password */
+
+async function updateUserInfo(evt) {
+  console.debug("updateUserInfo");
+  evt.preventDefault();
+
+  const newInfo = { }
+  const name = $("#user-name").val();
+  const password = $("#user-password").val();
+
+  if (name != '' || password != '') {
+    if (name != '') {
+      newInfo.name = name;
+    }
+    if (password != '') {
+      newInfo.password = password;
+    }
+  
+    currentUser = await currentUser.updateInfo(newInfo);
+  
+    if (currentUser) {
+      updateUIOnUserLogin();
+    }
+  
+    $userForm.trigger("reset");
+  } else {
+    alert('No new name or new password found')
+  }
+}
+
+$userForm.on("submit", updateUserInfo);
+
+/** Delete user account */
+
+async function deleteUserRequested(evt) {
+  console.debug("deleteUserRequested");
+  evt.preventDefault();
+
+  let choice = confirm('Are you sure you want to delete your account? This action cannot be undone.')
+
+  if (choice) {
+    await currentUser.deleteAccount();
+    console.log('testing logout');
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+$userDeleteForm.on('submit', deleteUserRequested)
+
 /******************************************************************************
  * General UI stuff about users
  */
@@ -109,8 +166,36 @@ function saveUserCredentialsInLocalStorage() {
 
 function updateUIOnUserLogin() {
   console.debug("updateUIOnUserLogin");
-
-  $allStoriesList.show();
-
+  hidePageComponents();
+  putStoriesOnPage('all');
+  updateUserInfoDisplay();
   updateNavOnLogin();
 }
+
+function updateUserInfoDisplay() {
+  $userInfo.empty();
+  if (currentUser) {
+    const {username, name } = currentUser;
+    const content = `
+    <h4>Your Profile: </h4>
+    <ul>
+      <li>
+        username: ${username}
+      </li>
+      <li>
+        name: ${name}
+      </li>
+    </ul>
+    <hr>
+  `
+  $userInfo.append(content);
+  }
+}
+
+$('#cancel-update-profile').on('click', () => {
+  console.debug("cancel update profile");
+  $userForm.trigger('reset');
+  hidePageComponents();
+  putStoriesOnPage('all');
+})
+

@@ -34,8 +34,12 @@
   margin-left: 2em;
 }
 
-.story-delete {
+.story-update {
   margin-left: 2em;
+}
+
+.story-delete {
+  margin-left: 1em;
 }
 
 .story-user {

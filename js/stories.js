@@ -24,7 +24,7 @@ function generateStoryMarkup(story, star, own) {
 
   const hostName = story.getHostName();
   let starSpan = "";
-  let deleteSpan = "";
+  let editSpan = "";
 
   if (star != "none") {
     const starStyle = (star === "solid") ? 'fas' : 'far';
@@ -36,7 +36,10 @@ function generateStoryMarkup(story, star, own) {
   }
 
   if (own) {
-    deleteSpan = `
+    editSpan = `
+    <span class="story-update">
+    <i class="fas fa-pencil-alt"></i>
+    </span>
     <span class="story-delete">
     <i class="fas fa-trash-alt"></i> 
     </span>
@@ -51,7 +54,7 @@ function generateStoryMarkup(story, star, own) {
         </a>
         <small class="story-hostname">(${hostName})</small>
         <small class="story-author">by ${story.author}</small>
-        ${deleteSpan}
+        ${editSpan}
         <small class="story-user">posted by ${story.username}</small>
       </li>
     `);
@@ -120,16 +123,62 @@ async function storySubmission(evt) {
 
 $storyForm.on('submit', storySubmission);
 
+$('#cancel-story').on('click', () => {
+  $storyForm.trigger("reset");
+  $storyForm.hide();
+  });
+
+async function storyUpdate(evt) {
+  console.debug("storyUpdate", evt);
+  evt.preventDefault();
+
+  const title = $("#update-title").val();
+  const author = $("#update-author").val();
+  const url = $('#update-url').val();
+  const storyId = $('#update-title').parent().attr('id');
+
+  const updatedStory = await currentUser.updateStory(storyId, { 
+    title: title, 
+    author: author, 
+    url: url 
+  });
+  // console.log(updatedStory);
+
+  $updateForm.trigger("reset");
+  $updateForm.hide();
+  putStoriesOnPage('all');
+}
+
+$updateForm.on('submit', storyUpdate);
+
+$('#cancel-update').on('click', () => {
+  $updateForm.trigger("reset");
+  $updateForm.hide();
+  });
+
 async function handleClick(evt) {
   const $target = $(evt.target)
-  if ($target.hasClass('fa-trash-alt')) {
-    console.log("handleClick - trash");
+  if ($target.hasClass('fa-pencil-alt')) {
+    console.log("handleClick - update");
     const storyId = $target.parent().parent().attr('id');
-    await currentUser.deleteStory(storyId);
-    $target.parent().parent().remove();
+    const story = await Story.getStory(storyId);
+    $("#update-title").val(story.title);
+    $("#update-author").val(story.author);
+    $('#update-url').val(story.url);
+    $('#update-title').parent().attr('id', storyId);
+    $updateForm.show();
+  }
+  if ($target.hasClass('fa-trash-alt')) {
+    console.debug("handleClick - trash");
+    const storyId = $target.parent().parent().attr('id');
+    let choice = confirm("Are you sure you want to delete that story?");
+    if (choice) {
+      await currentUser.deleteStory(storyId);
+      $target.parent().parent().remove();
+    }
   }
   if ($target.hasClass('fa-star')) {
-    console.log("handleClick - star");
+    console.debug("handleClick - star");
     const storyId = $target.parent().parent().attr('id');
     const method = ($target.hasClass('fas')) ? "DELETE" : "POST";
     await currentUser.toggleUserFavorite(storyId, method);

@@ -17,7 +17,7 @@ $body.on("click", "#nav-all", navAllStories);
 /** Show login/signup on click on "login" */
 
 function navLoginClick(evt) {
-  console.debug("navLoginClick", evt);
+  console.debug("navLoginClick");
   hidePageComponents();
   $loginForm.show();
   $signupForm.show();
@@ -44,7 +44,7 @@ function navFavorites(evt) {
 
 $navFavorites.on("click", navFavorites);
 
-/** Show story user's own stories on 'my stories' */
+/** Show user's own stories on 'my stories' */
 
 function navOwn(evt) {
   console.debug("navOwn");
@@ -53,6 +53,18 @@ function navOwn(evt) {
 }
 
 $navOwn.on("click", navOwn);
+
+/** Show user's info when username in navbar is clicked */
+
+function showUserInfo(evt) {
+  console.debug("showUserInfo");
+  hidePageComponents();
+  $userInfo.show();
+  $userForm.show();
+  $userDeleteForm.show();
+}
+
+$navUserProfile.on('click', showUserInfo);
 
 /** When a user first logins in, update the navbar to reflect that. */
 

@@ -21,11 +21,27 @@ class Story {
     this.createdAt = createdAt;
   }
 
+  // retrieves existing story data by id and returns Story object
+  static async getStory(storyId) {
+    const response = await axios({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "GET",
+    });
+
+    return new Story(response.data.story);
+  }
+
   /** Parses hostname out of URL and returns it. */
 
   getHostName() {
-    const url = new URL(this.url);
-    return url.hostname;
+    try {
+      const url = new URL(this.url);
+      return url.hostname;
+    } catch (e) {
+      // console.log(e)
+      return ""
+    }
+
   }
 }
 
@@ -134,22 +150,34 @@ class User {
    */
 
   static async signup(username, password, name) {
-    const response = await axios({
-      url: `${BASE_URL}/signup`,
-      method: "POST",
-      data: { user: { username, password, name } },
-    });
+    try {
+      const response = await axios({
+        url: `${BASE_URL}/signup`,
+        method: "POST",
+        data: { user: { username, password, name } },
+      });
+  
+      const { user } = response.data;
 
-    return new User(
-      {
-        username: user.username,
-        name: user.name,
-        createdAt: user.createdAt,
-        favorites: user.favorites,
-        ownStories: user.stories
-      },
-      response.data.token
-    );
+      return new User(
+        {
+          username: user.username,
+          name: user.name,
+          createdAt: user.createdAt,
+          favorites: user.favorites,
+          ownStories: user.stories
+        },
+        response.data.token
+      );
+    } catch(e) {
+      console.log(e);
+      let alertMsg = 'unable to create account';
+      if (e.response && e.response.status === 409) {
+        alertMsg += ' - username already taken';
+      }
+      alert(alertMsg);
+    }
+
   }
 
   /** Login in user with API, make User instance & return it.
@@ -159,24 +187,39 @@ class User {
    */
 
   static async login(username, password) {
-    const response = await axios({
-      url: `${BASE_URL}/login`,
-      method: "POST",
-      data: { user: { username, password } },
-    });
-
-    let { user } = response.data;
-
-    return new User(
-      {
-        username: user.username,
-        name: user.name,
-        createdAt: user.createdAt,
-        favorites: user.favorites,
-        ownStories: user.stories
-      },
-      response.data.token
-    );
+    try {
+      const response = await axios({
+        url: `${BASE_URL}/login`,
+        method: "POST",
+        data: { user: { username, password } },
+      });
+  
+      let { user } = response.data;
+  
+      return new User(
+        {
+          username: user.username,
+          name: user.name,
+          createdAt: user.createdAt,
+          favorites: user.favorites,
+          ownStories: user.stories
+        },
+        response.data.token
+      );
+    } catch(e) {
+      console.log(e);
+      let alertMsg = 'unable to login';
+      if (e.response) {
+        if (e.response.status === 404) {
+          alertMsg += ' - invalid username';
+        }
+        if (e.response.status === 401) {
+          alertMsg += ' - password incorrect';
+        }
+      }
+      alert(alertMsg);
+    }
+    
   }
 
   /** When we already have credentials (token & username) for a user,
@@ -209,6 +252,53 @@ class User {
     }
   }
 
+  //** Update user's name and/or password */
+
+  async updateInfo(newInfo) {
+    try {
+      const response = await axios({
+        url: `${BASE_URL}/users/${this.username}`,
+        method: "PATCH",
+        data: { token: this.loginToken, user: newInfo },
+      });
+
+      let { user } = response.data;
+
+      alert('account successfully updated')
+
+      return new User(
+        {
+          username: user.username,
+          name: user.name,
+          createdAt: user.createdAt,
+          favorites: user.favorites,
+          ownStories: user.stories
+        },
+        this.loginToken
+      );
+    } catch (err) {
+      console.error("user account update failed", err);
+      alert('account update failed')
+      return null;
+    }
+  }
+
+  //** Delete account */
+  async deleteAccount() {
+    console.log('in delete account function')
+    try{
+      const response = await axios({
+        url: `${BASE_URL}/users/${this.username}`,
+        method: "DELETE",
+        data: { token: this.loginToken },
+      });
+      alert('account has been deleted');
+    } catch(e) {
+      console.log(e);
+      alert('account delete unsuccessful');
+    }
+  }
+
   /** Toggle whether story is in user's favorites list */
 
   async toggleUserFavorite(storyId, action) {
@@ -223,16 +313,43 @@ class User {
 
     // if adding to favorites, add locally as well
     if (action === "POST") {
-      const story = await axios({
-        url: `${BASE_URL}/stories/${storyId}`,
-        method: "GET",
-      })
-      currentUser.favorites.push(new Story(story.data.story));
+      const story = await Story.getStory(storyId);
+      currentUser.favorites.push(story);
     }
 
-    // if un-favoriting, delete locally
+    // if un-favoriting, delete from local favorites
     if (action === "DELETE") {
       currentUser.favorites = currentUser.favorites.filter((story) => story.storyId != storyId);
+    }
+  }
+
+  async updateStory(storyId, updateInfo) {
+    try {
+      const response = await axios({
+        url: `${BASE_URL}/stories/${storyId}`,
+        method: "PATCH",
+        data: {
+          token: this.loginToken,
+          story: updateInfo
+        }
+      })
+      // console.log(response)
+  
+      const updatedStory = new Story(response.data.story);
+  
+      // update local list.
+      currentUser.ownStories = currentUser.ownStories.map((story) => {
+        return (story.storyId != storyId) ? story : updatedStory;
+      });
+      currentUser.favorites = currentUser.favorites.map((story) => {
+        return (story.storyId != storyId) ? story : updatedStory;
+      });
+      storyList.stories = storyList.stories.map((story) => {
+        return (story.storyId != storyId) ? story : updatedStory;
+      });
+    } catch(e) {
+      console.log(e);
+      alert('unable to update story');
     }
   }
 
@@ -244,15 +361,11 @@ class User {
         token: this.loginToken
       }
     })
-    console.log(response)
+    // console.log(response)
 
     // delete from each local list
     currentUser.ownStories = currentUser.ownStories.filter((story) => story.storyId != storyId);
     currentUser.favorites = currentUser.favorites.filter((story) => story.storyId != storyId);
     storyList.stories = storyList.stories.filter((story) => story.storyId != storyId);
-    // for (let localList of [storyList.stories, currentUser.favorites, currentUser.ownStories]) {
-    //   localList = localList.filter((story) => story.storyID != storyId);
-    //   console.log(localList);
-    // }
   }
 }

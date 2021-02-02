@@ -80,9 +80,13 @@ form input:focus {
   box-shadow: 0 0 4px 1px darkgray;
 }
 
-form > button {
+.form-button-row {
+  margin-left: 50px;
+}
+
+form button {
   width: 4rem;
-  margin: 5px 0 15px 65px;
+  margin: 5px 0 15px 15px;
   border: none;
   border-radius: 4px;
   padding: 8px;
@@ -93,17 +97,30 @@ form > button {
   transition: all 0.15s;
 }
 
-form > button:hover {
+form button:hover {
   background-color: dimgray;
 }
 
-form > hr {
+form hr {
   margin: 0;
   border: 1px solid lightgray;
 }
 
 .login-input label {
   width: 70px;
+}
+
+.user-input label {
+  width: 6.5rem;
+}
+
+.user-info {
+  margin: 18px;
+}
+
+.user-info hr {
+  margin: 0;
+  border: 1px solid lightgray;
 }
 
 
